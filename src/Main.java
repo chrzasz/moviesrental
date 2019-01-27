@@ -1,6 +1,4 @@
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.TimeZone;
 
 public class Main {
@@ -9,8 +7,21 @@ public class Main {
         String url = args[0] + "?serverTimezone=" +
                 TimeZone.getDefault().getID();
 
-        try(Connection connection = DriverManager.getConnection(url, args[1], args[2])) {
+        String query = "SELECT title, releaseDate FROM moviesinfo";
+
+        try(Connection connection = DriverManager.getConnection(url, args[1], args[2]);
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(query))
+        {
             System.out.println("DB connection OK.");
+            System.out.println("This is a list of movies in our rental offer:");
+            System.out.println("Title\t|\tReleased");
+            while(resultSet.next()) {
+                System.out.println(
+                        resultSet.getString("title") + "\t" + "|"
+                        + "\t" + resultSet.getDate("releaseDate")
+                );
+            }
         }
         catch(SQLException ex) {
             System.out.println(ex);
