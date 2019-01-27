@@ -4,26 +4,26 @@ import java.util.TimeZone;
 public class Main {
     public static void main(String[] args) {
 
-        String url = args[0] + "?serverTimezone=" +
-                TimeZone.getDefault().getID();
+/*Korzystając z PreparedStatement, napisz funkcję obsługującą wypożyczenie filmu
+przez klienta. */
 
-        String query = "SELECT title, releaseDate FROM moviesinfo";
+        String url = args[0] + "?serverTimezone=" + TimeZone.getDefault().getID();
 
-        try(Connection connection = DriverManager.getConnection(url, args[1], args[2]);
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(query))
-        {
-            System.out.println("DB connection OK.");
-            System.out.println("This is a list of movies in our rental offer:");
-            System.out.println("Title\t|\tReleased");
-            while(resultSet.next()) {
-                System.out.println(
-                        resultSet.getString("title") + "\t" + "|"
-                        + "\t" + resultSet.getDate("releaseDate")
-                );
-            }
-        }
-        catch(SQLException ex) {
+        String sqlUpdate = "UPDATE moviesinfo "
+                + "SET description = ? "
+                + "WHERE movieInfoId = ?";
+
+        try (Connection connection = DriverManager.getConnection(url, args[1], args[2]);
+             PreparedStatement pstmt = connection.prepareStatement(sqlUpdate)) {
+
+            System.out.println(String.format("Connected to database %s " + "successfully.", connection.getCatalog()));
+
+            pstmt.setString(1, "pusty opis");
+            pstmt.setInt(2, 4);
+            int rowAffected = pstmt.executeUpdate();
+            System.out.println(String.format("Row affected %d", rowAffected));
+
+        } catch (SQLException ex) {
             System.out.println(ex);
         }
 
@@ -31,3 +31,4 @@ public class Main {
     }
 
 }
+
