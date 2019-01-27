@@ -8,50 +8,52 @@ public class Main {
 
 /*Korzystając z PreparedStatement, napisz funkcję obsługującą wypożyczenie filmu
 przez klienta. */
-
         String url = args[0] + "?serverTimezone=" + TimeZone.getDefault().getID();
-
         String sql = "INSERT INTO rents(" +
                 "rentedMovieId,customer,status,rentPricePerDay,rentedDate,returnedDate)\n" +
                 "VALUES (?,?,?,?,?,?)";
-
-        ResultSet resultSet = null;
-
-        try (Connection connection = DriverManager.getConnection(url, args[1], args[2]);
-             PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);) {
-
+        final int customerId = 1;
+        final int copyId = 20;
+        try (Connection connection = DriverManager.getConnection(url, args[1], args[2])) {
+            //rentCopyToCustomer(copyId, customerId, connection);
+            getRentedTimes(1, connection);
             System.out.println(String.format("Connected to database %s " + "successfully.", connection.getCatalog()));
-
-            // set parameters for statement
-            pstmt.setInt(1, 1);
-            pstmt.setInt(2, 1);
-            pstmt.setString(3, String.valueOf("In rent"));
-            pstmt.setDouble(4,Double.valueOf("9.99"));
-            pstmt.setDate(5, Date.valueOf("1980-01-04"));
-            pstmt.setString(6, null);
-
-            int myId = 0;
-
-            int rowAffected = pstmt.executeUpdate();
-            if (rowAffected == 1) {
-                resultSet = pstmt.getGeneratedKeys();
-                if (resultSet.next())
-                    myId = resultSet.getInt(1);
-
-            }
-
-        } catch (SQLException ex) {
-            System.out.println(ex);
-        } finally {
-            try {
-                if(resultSet != null)  resultSet.close();
-            } catch (SQLException e) {
-                System.out.println(e.getMessage());
-            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-
 
     }
 
-}
+    private static void rentCopyToCustomer(int copyId, int customerId, Connection connection) {
+        int copyRentedTimes = getRentedTimes(copyId, connection);
+        if (copyRentedTimes >= 0) {  //normalnie to robimy wyjatkami
+            boolean isCopyUpdated = updateMoviesCopies(copyId, true, copyRentedTimes + 1, customerId, connection);
+            if (isCopyUpdated) {
+            }
+        }
+    }
 
+    private static boolean updateMoviesCopies(final int copyId, final boolean isRented, final int rentedTimes,
+                                              final int rentedTo, final Connection connection) {
+        return true;
+    }
+
+    private static int getRentedTimes(final int copyId, final Connection connection) {
+        String parametrizedQuery = "SELECT rentedTimes FROM moviescopies WHERE copyId=?";
+        int rentedTimes = -1;
+        try (PreparedStatement preparedStatement = connection.prepareStatement(parametrizedQuery)) {
+            preparedStatement.setInt(1, copyId);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    System.out.println(resultSet.getString("rentedTimes"));
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return rentedTimes;
+    }
+}
